@@ -1,0 +1,1 @@
+This repo contains demos of [torch](https://pytorch.org/tutorials/beginner/dist_overview.html#data-parallel-training) distributed training methods.
