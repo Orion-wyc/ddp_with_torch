@@ -66,6 +66,5 @@ def train():
             input.size(), output.size()))
         
 
-
 if __name__ == "__main__":
     train()
