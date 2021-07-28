@@ -33,7 +33,7 @@ def distributed_concat(tensor, num_total_examples):
     return concat[:num_total_examples]
 
 
-def my_eval_func(model, data_loader, dev_id):
+def my_eval_func(model, data_loader, dev_id, dataset_length):
     correct_pred, num_examples = 0, 0
     model.to(dev_id)
     model.eval()
@@ -50,8 +50,9 @@ def my_eval_func(model, data_loader, dev_id):
             num_examples += label.size(0)
 
         # 进行gather
-        predictions = distributed_concat(torch.cat(predictions, dim=0), num_examples)
-        labels = distributed_concat(torch.cat(labels, dim=0), num_examples)
+        print(num_examples, dataset_length)
+        predictions = distributed_concat(torch.cat(predictions, dim=0), dataset_length)
+        labels = distributed_concat(torch.cat(labels, dim=0), dataset_length)
         assert predictions.size() == labels.size()
 
         correct_pred = (predictions == labels).sum()
@@ -78,8 +79,8 @@ def train(proc_id, n_gpus, devices):
     model = AlexNet(NUM_CLASSES)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARN_RATE)
-
-    train_loader, val_loader, test_loader = data
+    # dataset_length is used for collective communication
+    train_loader, val_loader, test_loader, dataset_length = data
 
     model.to(dev_id)
 
@@ -116,7 +117,7 @@ def train(proc_id, n_gpus, devices):
 
         epoch_end = time.time()
         print("Epoch {:>4d} Elapsed time = {:>.3f}".format(epoch, epoch_end - epoch_start))
-        val_acc = my_eval_func(model, val_loader, dev_id)
+        val_acc = my_eval_func(model, val_loader, dev_id, dataset_length)
         print("--> val acc: {:>.3f}".format(val_acc))
 
     if proc_id == 0:

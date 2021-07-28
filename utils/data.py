@@ -150,7 +150,7 @@ def load_seq_cifar10():
     train_set = Subset(train_val_set, train_mask)
     val_set = Subset(train_val_set, val_mask)
 
-    sampler = SequentialDistributedSampler(val_set, train_config['batch_size'])
+    test_sampler = SequentialDistributedSampler(val_set, train_config['batch_size'])
 
     train_loader = DataLoader(dataset=train_set,
                               batch_size=train_config['batch_size'],
@@ -159,14 +159,14 @@ def load_seq_cifar10():
 
     val_loader = DataLoader(dataset=val_set,
                             batch_size=train_config['batch_size'],
-                            sampler=sampler,
+                            sampler=test_sampler,
                             shuffle=False)
 
     test_loader = DataLoader(test_set,
                              batch_size=train_config['batch_size'],
                              shuffle=False)
 
-    return train_loader, val_loader, test_loader
+    return train_loader, val_loader, test_loader, len(test_sampler.dataset)
 
 
 def save_model(model=None, model_dir=MODEL_SAVE_ROOT):
